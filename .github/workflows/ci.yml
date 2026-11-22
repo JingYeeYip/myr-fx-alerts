@@ -1,0 +1,28 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  setup-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Create .env from the example
+        run: cp .env.example .env
+      
+      - name: Validate docker-compose.yml
+        run: docker compose config --quiet
+      
+      - name: Start Postgres and wait until healthy
+        run: docker compose up -d --wait
+      
+      - name: Show database logs (only if something failed) 
+        if: failure()
+        run: docker compose logs db
